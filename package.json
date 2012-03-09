@@ -1,0 +1,14 @@
+{
+    "name": "nodethejquery"
+  , "version": "0.0.1"
+  , "description": "Fudges jQuery to use on Node. Bases on node-jquery"
+  , "keywords": ["jquery"]
+  , "author": "Dipesh Patel <dipthegeezer.opensource@gmail.com>"
+  , "lib"           : "."
+  , "main"          : "./nodethejquery.js",
+  , "dependencies": {
+     , "jsdom":"*"
+  }
+  , "devDependencies": { "should": ">= 0.0.1" }
+  , "engines": { "node": ">= 0.4.x < 0.8.0" }
+}
