@@ -2,9 +2,29 @@
 
 var program = require('commander');
 var util = require('util');
+var https = require('https');
 var http = require('http');
-var temp = require ('temp');
 var fs = require('fs');
+
+var download = function(client, options, stream, callback){
+  var req = client.get(
+    options,
+    function(res) {
+      util.log("Got response: " + res.statusCode);
+      res.on('data', function(chunk) {
+        stream.write(chunk);
+        if (callback!=null){
+          callback(stream);
+        }
+      });
+    })
+    .on('error', function(e) {
+      util.log("Got error: " + e.message);
+        throw e;
+      });
+  req.end();
+  return;
+};
 
 program
     .version('0.0.1')
@@ -18,44 +38,36 @@ program
       '/tmp')
     .parse(process.argv);
 
-
-temp.mkdir('nodethequery',function(err, dirPath) {
-  if(err){
-    throw err;
-  }
-  var stream = fs.createWriteStream(dirPath+"/nodethejson.js", {
-    flags: "a",
-    mode: 0666
-  });
-
-  download({},dirPath,stream, function(stream){
-    download({},dirPath,stream,function(stream){
-      download({},stream,function(){});
-    });
-  });
-  stream.end();
-
-  //add package.json
-  //tar and is ready
+var stream = fs.createWriteStream("nodethejson.js", {
+  flags: "w",
+  encoding: null,
+  mode: 0666,
+  end: false
 });
 
-var download = function(options, stream, callback){
-  return http.get(
-    options,
-    function(res) {
-      util.log("Got response: " + res.statusCode);
-      res.on('data', function(chunk) {
-        util.log("Body: " + chunk);
-        stream.write(chunk)
-        .on('error', function(e) {
-          util.log("Got error: " + e.message);
-          throw e;
-        });
-        callback(stream);
-      });
-    })
-    .on('error', function(e) {
-      util.log("Got error: " + e.message);
-        throw e;
-      });
-};
+download( https,
+  {
+  host: 'raw.github.com',
+  path: '/coolaj86/node-jquery/master/src/header.js'
+  },
+  stream,
+  function(stream2){
+    download( http,
+      {
+      host: 'code.jquery.com',
+      path: '/jquery-'+ program.jquery +'.js'
+      },
+      stream2,
+      function(stream3){
+        download( https,
+          {
+          host: 'raw.github.com',
+          path: '/coolaj86/node-jquery/master/src/footer.js'
+          },
+          stream3,
+          null
+        );
+      }
+    );
+  }
+);
